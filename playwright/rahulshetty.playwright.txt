@@ -1,0 +1,164 @@
+const { test, expect } = require('@playwright/test');
+ 
+ 
+ 
+ 
+test('@Web Client App login', async ({ page }) => {
+   //js file- Login js, DashboardPage
+   const email = "anshika@gmail.com";
+   const productName = 'zara coat 3';
+   const products = page.locator(".card-body");
+   await page.goto("https://rahulshettyacademy.com/client");
+   await page.locator("#userEmail").fill(email);
+   await page.locator("#userPassword").type("Iamking@000");
+   await page.locator("[value='Login']").click();
+   await page.waitForLoadState('networkidle');
+   await page.locator(".card-body b").first().waitFor();
+   const titles = await page.locator(".card-body b").allTextContents();
+   console.log(titles); 
+ 
+})
+
+
+//radiobuttons and dropdowns:::
+
+const {test,expect} = require('@playwright/test');
+
+test('browser context',async ({browser})=>
+{  
+    const context= await browser.newContext();
+    //creates a new isolated browser session in playwright
+    const page= await context.newPage();
+    const username= page.locator('#username');
+    const signIn=page.locator("#signInBtn");
+    const cardTitles = page.locator(".card-body a");
+    await page.goto('https://rahulshettyacademy.com/loginpagePractise/');
+    //css 
+    await username.fill("rahulshettyacademy");
+    await page.locator("[type='password']").fill("Learning@830$3mK2");
+    await signIn.click();
+    //wait until this locator shown up page 
+     //console.log(await page.locator("[style*='block']").textContent());
+    //await expect(page.locator("[style*='block']")).toContainText('Incorrect');
+console.log(await page.locator(".card-body a").first().textContent());
+console.log(await page.locator(".card-body a").nth(1).textContent());
+//to grab tittle of all cards
+const allTitles = await cardTitles.allTextContents(); 
+console.log(allTitles);
+//allTextcontents() returns an array 
+//do an assingment on rahulshettyacademy.com/client
+});
+
+
+//to handle radiobuttons and dropdowns:::
+
+
+test('UI Controls', async({page})=>
+{
+     await page.goto('https://rahulshettyacademy.com/loginpagePractise/');
+    const username= page.locator('#username');
+    const signIn=page.locator("#signInBtn")
+    const dropdown = page.locator("select.form-control");
+await dropdown.selectOption("consult");
+await page.locator(".radiotextsty").nth(1).click();
+//await page.locator("[type='user']");
+await page.locator("#okayBtn").click();
+
+await page.pause();
+   
+});
+
+//assertion for the last radio button to be checked and to return a boolean value::
+
+await page.locator("#terms").click(); 
+await expect(page.locator("#terms")).toBeChecked();
+await page.locator("#terms").uncheck();
+await expect(page.locator("#terms")).not.toBeChecked();
+//use .not.toBeChecked() (OR) .ischecked().toBeFalsy()
+//expect(await page.locator("#terms").isChecked()).toBeFalsy();
+
+//assertion for the last radio button to be checked and to return a boolean value
+//await page.pause();
+   
+//expect(await page.locator("#terms").isChecked()).toBeFalsy();
+
+
+//assertion to check whether 
+
+
+test('UI Controls', async({page})=>
+{
+     await page.goto('https://rahulshettyacademy.com/loginpagePractise/');
+    const username= page.locator('#username');
+    const signIn=page.locator("#signInBtn")
+    const documentlink=page.locator("[href*='documents-request']");
+    const dropdown = page.locator("select.form-control");
+await dropdown.selectOption("consult");
+await page.locator(".radiotextsty").nth(1).click();
+await page.locator("#okayBtn").click();
+console.log(await page.locator(".radiotextsty").last().isChecked());
+await expect(page.locator(".radiotextsty").last()).toBeChecked();
+await page.locator("#terms").click(); 
+//DO SOMETHING
+await expect(page.locator("#terms")).toBeChecked();
+//VERIFY SOMETHING
+await page.locator("#terms").uncheck();
+await expect(page.locator("#terms")).not.toBeChecked();//tobechecked is the action performed 
+//use .not.toBeChecked() (OR) .ischecked().toBeFalsy()
+//expect(await page.locator("#terms").isChecked()).toBeFalsy();//where the action the performed the await should be within the scope only 
+//if the action is outside the await will also be outside 
+//assertion for the last radio button to be checked and to return a boolean value
+//await page.pause();
+//await expect(locator).toHaveAttribute('type', 'text');type=class,text=blinkingText
+await expect(documentlink).toHaveAttribute("class","blinkingText");
+///let us check if the pop up is blinking or not    
+});
+
+
+
+//to access child window with playwright
+  test.only('child windows handl',async({browser})=>
+  {
+const context= await browser.newContext();
+//creates a new isolated browser session/new browser window in playwright
+const page= await context.newPage();
+//in that new browser window/session we have created a new page on that new page we will automate further
+const username= page.locator('#username');
+await page.goto('https://rahulshettyacademy.com/loginpagePractise/');
+const documentlink=page.locator("[href*='documents-request']");
+const [newPage]= await Promise.all([//both are succesfully fulfilled and then jumps to the next,this is an Array index 
+//needs to be parallelly executed 
+context.waitForEvent('page'),//listen for any new page pending,rejecting,fulfilled
+//another context for another page 
+//waitforevent to monitor whether any page is opened in the background 
+//the page2 variable will have the knowledge 
+//we want the both to go parallell no await and async here 
+documentlink.click(),
+//expectations of this array is to return fulfilled promise and return array
+])//we will come out of this array only when this promise box is fullfiled 
+//the page2 variable will have the knowledge 
+//these two steps will be iterated until the array index is fullfilled 
+//and the fullfiled promise is a new page 
+//NOTE: very important why is it asyncronous? why multiple steps
+//hence promise is used as an array and the result is put into an object here which is [newpage]
+//and then we move to the next steps
+//everything happens inside the array once it is fullfilled 
+//comes out of the array with the result and moves to the next steps
+
+const text = await newPage.locator(".red").textContent();                  
+//left side of the @ will be left part and the text after the @ on the right side 
+const arrayText = text.split("@")
+const domain = arrayText[1].split(" ") [0]//split(" ")has a whitespace the gap between " "
+console.log(domain);
+//now we come out of the child page and come back to the parenyt page and type on to the edit box in the main page
+await page.locator("#username").type(domain);
+await page.pause();
+console.log(await page.locator("#username").textContent());
+
+});
+
+
+
+
+
+

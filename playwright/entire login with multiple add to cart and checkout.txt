@@ -1,0 +1,99 @@
+const {test,expect} = require('@playwright/test');
+
+test('client app login to logout with multiple items', async({ page }) =>{
+    const email = "ansika1@gmail.com";
+    const password = "Iamking@000";
+    const productNames = ['ZARA COAT 3','ADIDAS ORIGINAL','iphone 13 pro'];//products we want to add to cart
+    const products = page.locator(".card-body");
+
+    //login
+    await page.goto("https://rahulshettyacademy.com/client");
+    await page.locator("#userEmail").fill(email);
+    await page.locator("#userPassword").fill(password);
+    await page.locator("[value='Login']").click();
+    await page.locator(".card-body b").first().waitFor();//wait for atleast one card to be loaded
+
+    //list all the items on the dashboard
+    const titles = await page.locator(".card-body b").allTextContents();
+    console.log("Products on dashboard:", titles);
+
+    //add multiple items to cart
+    const count = await products.count();
+    for(const productName of productNames)//outer loop goes through the products we want
+    {
+        let found = false;
+        for(let i = 0; i < count; ++i)//inner loop goes through the cards on the page
+        {
+            if(await products.nth(i).locator("b").textContent() === productName)
+            {
+                await products.nth(i).locator("text= Add To Cart").click();
+                await expect(page.locator("#toast-container")).toContainText("Product Added To Cart");
+                found = true;
+                break;//item added, move on to the next product
+            }
+        }
+        expect(found, productName + " should be on the dashboard").toBeTruthy();
+    }
+
+    //cart
+    await page.locator("[routerlink*='cart']").click();
+    await page.locator("div li").first().waitFor();//wait for cart items to load
+    for(const productName of productNames)
+    {
+        //isVisible does not autowait and returns a promise, so use the expect assertion with await
+        await expect(page.locator("h3:has-text('" + productName + "')")).toBeVisible();
+    }
+    await page.locator("text=Checkout").click();
+
+    //checkout - auto suggestive dropdown
+    await page.locator("[placeholder*='Country']").pressSequentially("ind",{delay:100});
+    const dropdown = page.locator(".ta-results");
+    await dropdown.waitFor();
+    const optionsCount = await dropdown.locator("button").count();
+    for(let i = 0; i < optionsCount; ++i)
+    {
+        const text = await dropdown.locator("button").nth(i).textContent();
+        if(text.trim() === "India")
+        {
+            await dropdown.locator("button").nth(i).click();
+            break;
+        }
+    }
+    await expect(page.locator(".user__name [type='text']").first()).toHaveText(email);
+    await page.locator(".action__submit").click();
+
+    //order ids - one id per product, raw text looks like " | 68abc... | "
+    await expect(page.locator(".hero-primary")).toContainText("Thankyou for the order.");
+    const rawIds = await page.locator(".em-spacer-1 .ng-star-inserted").allTextContents();
+    const orderIds = rawIds.map(id => id.replace(/\|/g,"").trim()).filter(id => id);
+    console.log("Order ids:", orderIds);
+    expect(orderIds.length).toBeGreaterThan(0);
+
+    //order details for every order id
+    for(const orderId of orderIds)
+    {
+        await page.locator("button[routerlink*='myorders']").click();
+        await page.locator("tbody tr").first().waitFor();
+        const rows = page.locator("tbody tr");
+        const rowCount = await rows.count();
+        for(let i = 0; i < rowCount; ++i)
+        {
+            const rowOrderId = await rows.nth(i).locator("th").textContent();//order id is in the th of each row
+            if(rowOrderId.trim() === orderId)
+            {
+                await rows.nth(i).locator("button").first().click();//View button
+                break;
+            }
+        }
+        await page.locator(".col-text").first().waitFor();
+        await expect(page.locator(".col-text").first()).toHaveText(orderId);
+        const orderedProduct = await page.locator(".title").first().textContent();
+        console.log("Order details -> id:", orderId, "| product:", orderedProduct.trim());
+        expect(productNames).toContain(orderedProduct.trim());
+    }
+
+    //logout
+    await page.getByRole('button', {name: /Sign Out/i}).click();
+    await expect(page).toHaveURL(/auth\/login/);
+
+})

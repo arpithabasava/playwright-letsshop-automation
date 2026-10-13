@@ -1,0 +1,24 @@
+// @ts-check
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * @see https://playwright.dev/docs/test-configuration
+ */
+const config = defineConfig({
+  testDir: './tests',
+  timeout: 30 * 1000, // global test timeout
+  expect: {
+    timeout: 5000, // assertion timeout
+  },
+  reporter: 'html',
+  use: {
+    browserName: 'chromium',
+    headless: false,
+    screenshot: 'on', // capture screenshots on every step
+    trace: 'on',      // collect trace for all tests
+    navigationTimeout: 60 * 1000, // allow up to 60s for page navigation
+    // actionTimeout: 10 * 1000,  // uncomment if you want per-action timeout
+  },
+});
+
+export default config;
